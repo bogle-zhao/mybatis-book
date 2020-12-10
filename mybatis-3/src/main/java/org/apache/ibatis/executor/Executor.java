@@ -54,6 +54,7 @@ public interface Executor {
 
   void clearLocalCache();
 
+  //延迟加载，带所有查询完成后，触发这个延迟加载，并将值设置到resultObject 中
   void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key, Class<?> targetType);
 
   Transaction getTransaction();

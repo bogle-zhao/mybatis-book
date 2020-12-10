@@ -149,7 +149,7 @@ public abstract class BaseExecutor implements Executor {
     }
     List<E> list;
     try {
-      queryStack++;
+      queryStack++; //循环依赖查询使用的
       // 从缓存中获取结果
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
       if (list != null) {
@@ -161,6 +161,7 @@ public abstract class BaseExecutor implements Executor {
     } finally {
       queryStack--;
     }
+    //当所有查询完成后，执行延迟加载逻辑
     if (queryStack == 0) {
       for (DeferredLoad deferredLoad : deferredLoads) {
         deferredLoad.load();

@@ -765,28 +765,34 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     }
     return value;
   }
-
+  // 获取嵌套查询映射值
   private Object getNestedQueryMappingValue(ResultSet rs, MetaObject metaResultObject, ResultMapping propertyMapping, ResultLoaderMap lazyLoader, String columnPrefix)
       throws SQLException {
     final String nestedQueryId = propertyMapping.getNestedQueryId();
     final String property = propertyMapping.getProperty();
+    //子查询MappedStatement
     final MappedStatement nestedQuery = configuration.getMappedStatement(nestedQueryId);
     final Class<?> nestedQueryParameterType = nestedQuery.getParameterMap().getType();
+    //子查询参数
     final Object nestedQueryParameterObject = prepareParameterForNestedQuery(rs, propertyMapping, nestedQueryParameterType, columnPrefix);
     Object value = null;
     if (nestedQueryParameterObject != null) {
       final BoundSql nestedBoundSql = nestedQuery.getBoundSql(nestedQueryParameterObject);
       final CacheKey key = executor.createCacheKey(nestedQuery, nestedQueryParameterObject, RowBounds.DEFAULT, nestedBoundSql);
       final Class<?> targetType = propertyMapping.getJavaType();
+      //是否命中缓存
       if (executor.isCached(nestedQuery, key)) {
+        //延迟加载
         executor.deferLoad(nestedQuery, metaResultObject, property, key, targetType);
         value = DEFERED;
       } else {
         final ResultLoader resultLoader = new ResultLoader(configuration, executor, nestedQuery, nestedQueryParameterObject, targetType, key, nestedBoundSql);
+        //是否为懒加载
         if (propertyMapping.isLazy()) {
           lazyLoader.addLoader(property, metaResultObject, resultLoader);
           value = DEFERED;
         } else {
+          // 立即加载
           value = resultLoader.loadResult();
         }
       }
